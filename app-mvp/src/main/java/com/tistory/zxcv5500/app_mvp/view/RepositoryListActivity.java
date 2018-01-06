@@ -1,9 +1,13 @@
 package com.tistory.zxcv5500.app_mvp.view;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,14 +19,15 @@ import com.tistory.zxcv5500.app_mvp.contract.RepositoryListContract;
 import com.tistory.zxcv5500.app_mvp.model.GitHubService;
 import com.tistory.zxcv5500.app_mvp.presenter.RepositoryListPresenter;
 
-public class RepositoryListActivity extends AppCompatActivity implements RepositoryAdapter.OnRepositoryItemClickListener, RepositoryListContract.View {
-	private RepositoryListContract.UserActions repositoryListPresenter;
-
+public class RepositoryListActivity extends AppCompatActivity implements RepositoryAdapter.OnRepositoryItemClickListener,
+		RepositoryListContract.View {
 	private Spinner languageSpinner;
+
 	private ProgressBar progressBar;
 	private CoordinatorLayout coordinatorLayout;
-
 	private RepositoryAdapter repositoryAdapter;
+
+	private RepositoryListContract.UserActions repositoryListPresenter;
 
 
 	@Override
@@ -31,15 +36,29 @@ public class RepositoryListActivity extends AppCompatActivity implements Reposit
 		setContentView(R.layout.activity_repository_list);
 
 		// View를 설정
-		setupView();
+		setupViews();
 
 		// Presenter의 인스턴스를 생성
 		final GitHubService gitHubService = ((NewGitHubReposApplication) getApplication()).getGitHubService();
 		repositoryListPresenter = new RepositoryListPresenter((RepositoryListContract.View) this, gitHubService);
 	}
 
-	private void setupView() {
+	private void setupViews() {
+    // 툴바 설정
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    setSupportActionBar(toolbar);
 
+    // Recycler View
+    RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_repos);
+    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    repositoryAdapter = new RepositoryAdapter((Context) this, (RepositoryAdapter.OnRepositoryItemClickListener) this);
+    recyclerView.setAdapter(repositoryAdapter);
+
+    // ProgressBar
+    progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+
+    // SnackBar 표시로 이용한다
+    coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout);
 		// Spinner
 		languageSpinner = (Spinner) findViewById(R.id.language_spinner);
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
@@ -50,9 +69,9 @@ public class RepositoryListActivity extends AppCompatActivity implements Reposit
 			@Override
 			public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
 				// 스피너의 선택 내용이 바뀌면 호출된다.
-				String lanuage = (String) languageSpinner.getItemAtPosition(position);
+				String language = (String) languageSpinner.getItemAtPosition(position);
 				// Presenter에 프로그래밍 언어를 선택했다고 알려준다
-				repositoryListPresenter.selectLanguage(lanuage);
+				repositoryListPresenter.selectLanguage(language);
 			}
 
 			@Override
@@ -74,8 +93,13 @@ public class RepositoryListActivity extends AppCompatActivity implements Reposit
 	// 이 곳에서 Presenter으로 부터 지시를 받아 View의 변경 등을 한다.
 
 	@Override
+	public void startDetailActivity(String full_name) {
+
+	}
+
+	@Override
 	public String getSelectedLanguage() {
-		return null;
+		return (String) languageSpinner.getSelectedItem();
 	}
 
 	@Override
@@ -98,10 +122,5 @@ public class RepositoryListActivity extends AppCompatActivity implements Reposit
 	public void showError() {
 		Snackbar.make(coordinatorLayout, "읽을 수 없습니다.", Snackbar.LENGTH_LONG)
 				.setAction("Action", null).show();
-	}
-
-	@Override
-	public void startDetailActivity(String fullRepositoryName) {
-
 	}
 }

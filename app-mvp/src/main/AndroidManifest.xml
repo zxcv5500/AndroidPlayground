@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tistory.zxcv5500.app_mvp">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:name=".view.NewGitHubReposApplication"
         android:allowBackup="true"
